@@ -1,4 +1,4 @@
-import http from "node:http";
+import express from "express";
 import type { RpcRequest, RpcResponse } from "./rpc.ts";
 
 type Product = { id: string; name: string; price: number };
@@ -45,23 +45,15 @@ const methods: Record<string, (...args: any[]) => unknown> = {
 };
 
 const PORT = 3000;
+const app = express();
 
-const server = http.createServer(async (req, res) => {
-  if (req.method !== "POST" || req.url !== "/rpc") {
-    res.writeHead(404);
-    res.end("Not found");
-    return;
-  }
+app.use(express.json());
 
-  const chunks: Buffer[] = [];
-  for await (const chunk of req) {
-    chunks.push(chunk as Buffer);
-  }
-
+app.post("/rpc", (req, res) => {
   let response: RpcResponse;
 
   try {
-    const body = JSON.parse(Buffer.concat(chunks).toString()) as RpcRequest;
+    const body = req.body as RpcRequest;
     const fn = methods[body.method];
 
     if (!fn) {
@@ -76,10 +68,9 @@ const server = http.createServer(async (req, res) => {
     };
   }
 
-  res.writeHead(200, { "Content-Type": "application/json" });
-  res.end(JSON.stringify(response));
+  res.json(response);
 });
 
-server.listen(PORT, () => {
+app.listen(PORT, () => {
   console.log(`listening on http://localhost:${PORT}/rpc`);
 });

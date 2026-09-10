@@ -1,6 +1,6 @@
 # RPC PoC
 
-HTTP + JSON remote procedure call in TypeScript.
+HTTP + JSON remote procedure call in TypeScript (Express).
 
 Client POSTs `{ method, args }` to `/rpc`. Server runs the method and returns `{ ok, result }` or `{ ok, error }`.
 
