@@ -2,6 +2,7 @@ import type { RpcRequest, RpcResponse } from "./rpc.ts";
 
 const RPC_URL = "http://localhost:3000/rpc";
 
+/** Call a remote procedure as if it were a local function */
 async function call(method: string, ...args: unknown[]): Promise<unknown> {
   const request: RpcRequest = { method, args };
 
@@ -20,15 +21,35 @@ async function call(method: string, ...args: unknown[]): Promise<unknown> {
   return data.result;
 }
 
+/**
+ * Sample: client-side checkout flow.
+ * The client never touches the catalog DB — it only calls remote procedures.
+ */
 async function main() {
-  console.log("add(2, 3)       =>", await call("add", 2, 3));
-  console.log("greet('World')  =>", await call("greet", "World"));
-  console.log("multiply(4, 5)  =>", await call("multiply", 4, 5));
+  console.log("--- Browse catalog ---");
+  console.log(await call("listProducts"));
 
+  console.log("\n--- Look up one product ---");
+  console.log(await call("getProduct", "milk"));
+
+  const cart = [
+    { productId: "apple", qty: 3 },
+    { productId: "bread", qty: 1 },
+    { productId: "milk", qty: 2 },
+  ];
+
+  console.log("\n--- Calculate cart total ---");
+  console.log("cart:", cart);
+  console.log("total:", await call("calculateTotal", cart));
+
+  console.log("\n--- Place order ---");
+  console.log(await call("placeOrder", "user-42", cart));
+
+  console.log("\n--- Error case (unknown product) ---");
   try {
-    await call("missing");
+    await call("getProduct", "banana");
   } catch (err) {
-    console.log("missing()     =>", (err as Error).message);
+    console.log((err as Error).message);
   }
 }
 
