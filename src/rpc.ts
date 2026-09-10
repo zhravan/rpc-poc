@@ -1,5 +1,3 @@
-/** Shared request/response shape for the POC */
-
 export type RpcRequest = {
   method: string;
   args: unknown[];

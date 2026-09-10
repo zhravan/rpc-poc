@@ -4,7 +4,6 @@ import type { RpcRequest, RpcResponse } from "./rpc.ts";
 type Product = { id: string; name: string; price: number };
 type CartItem = { productId: string; qty: number };
 
-/** In-memory catalog — stands in for a remote inventory service */
 const catalog: Record<string, Product> = {
   apple: { id: "apple", name: "Apple", price: 30 },
   bread: { id: "bread", name: "Bread", price: 45 },
@@ -13,10 +12,6 @@ const catalog: Record<string, Product> = {
 
 const orders: Array<{ id: string; userId: string; items: CartItem[]; total: number }> = [];
 
-/**
- * Remote procedures the client can invoke.
- * Use case: a thin client talks to a shop service without knowing DB/HTTP details.
- */
 const methods: Record<string, (...args: any[]) => unknown> = {
   listProducts: () => Object.values(catalog),
 
@@ -72,8 +67,7 @@ const server = http.createServer(async (req, res) => {
     if (!fn) {
       response = { ok: false, error: `Unknown method: ${body.method}` };
     } else {
-      const result = fn(...(body.args ?? []));
-      response = { ok: true, result };
+      response = { ok: true, result: fn(...(body.args ?? [])) };
     }
   } catch (err) {
     response = {
@@ -87,6 +81,5 @@ const server = http.createServer(async (req, res) => {
 });
 
 server.listen(PORT, () => {
-  console.log(`Shop RPC server on http://localhost:${PORT}/rpc`);
-  console.log(`Methods: ${Object.keys(methods).join(", ")}`);
+  console.log(`listening on http://localhost:${PORT}/rpc`);
 });
